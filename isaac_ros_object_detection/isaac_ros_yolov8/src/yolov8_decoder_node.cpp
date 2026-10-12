@@ -74,7 +74,8 @@ void YoloV8DecoderNode::InputCallback(const nvidia::isaac_ros::nitros::NitrosTen
   std::vector<int> classes;
 
   //  Output dimensions = [1, 84, 8400]
-  int out_dim = 8400;
+  //int out_dim = 8400;
+  int out_dim = 6720;
   float * results_data = reinterpret_cast<float *>(results_vector.data());
 
   for (int i = 0; i < out_dim; i++) {

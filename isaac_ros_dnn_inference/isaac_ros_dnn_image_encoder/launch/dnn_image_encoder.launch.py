@@ -56,9 +56,9 @@ def launch_setup(context, *args, **kwargs):
     image_stddev = LaunchConfiguration('image_stddev')
     num_blocks = LaunchConfiguration('num_blocks')
 
-    image_input_topic = LaunchConfiguration('image_input_topic', default='image')
-    camera_info_input_topic = LaunchConfiguration('camera_info_input_topic', default='camera_info')
-    tensor_output_topic = LaunchConfiguration('tensor_output_topic', default='encoded_tensor')
+    image_input_topic = LaunchConfiguration('image_input_topic', default='/image')
+    camera_info_input_topic = LaunchConfiguration('camera_info_input_topic', default='/camera_info')
+    tensor_output_topic = LaunchConfiguration('tensor_output_topic', default='/tensor_pub')
 
     attach_to_shared_component_container_arg = LaunchConfiguration(
         'attach_to_shared_component_container', default=False
@@ -78,7 +78,7 @@ def launch_setup(context, *args, **kwargs):
     resize_image_width = int(network_image_width * resize_factor)
     resize_image_height = int(network_image_height * resize_factor)
 
-    # If we do not attach to a shared component container we have to create our own container.
+    # Création du conteneur de composants si non partagé
     dnn_image_encoder_container = Node(
         name=component_container_name_arg,
         package='rclcpp_components',
@@ -146,7 +146,6 @@ def launch_setup(context, *args, **kwargs):
                     ('camera_info', 'resize/camera_info'),
                 ],
             ),
-
             ComposableNode(
                 name='image_to_tensor',
                 package='isaac_ros_tensor_proc',
@@ -225,86 +224,25 @@ def launch_setup(context, *args, **kwargs):
 
 def generate_launch_description():
     launch_args = [
-        DeclareLaunchArgument(
-            'input_image_width',
-            default_value='0',
-            description='The input image width',
-        ),
-        DeclareLaunchArgument(
-            'input_image_height',
-            default_value='0',
-            description='The input image height',
-        ),
-        DeclareLaunchArgument(
-            'network_image_width',
-            default_value='0',
-            description='The network image width',
-        ),
-        DeclareLaunchArgument(
-            'network_image_height',
-            default_value='0',
-            description='The network image height',
-        ),
-        DeclareLaunchArgument(
-            'image_mean',
-            default_value='[0.5, 0.5, 0.5]',
-            description='The mean for image normalization',
-        ),
-        DeclareLaunchArgument(
-            'image_stddev',
-            default_value='[0.5, 0.5, 0.5]',
-            description='The standard deviation for image normalization',
-        ),
-        DeclareLaunchArgument(
-            'enable_padding',
-            default_value='True',
-            description='Whether to enable padding or not',
-        ),
-        DeclareLaunchArgument(
-            'input_qos',
-            default_value='DEFAULT',
-            description='The QoS settings for the input image'
-        ),
-        DeclareLaunchArgument(
-            'output_qos',
-            default_value='DEFAULT',
-            description='The QoS settings for the output tensor'
-        ),
-        DeclareLaunchArgument(
-            'num_blocks',
-            default_value='40',
-            description='The number of preallocated memory blocks',
-        ),
-        DeclareLaunchArgument(
-            'keep_aspect_ratio',
-            default_value='True',
-            description='Whether to maintain the aspect ratio or not while resizing'
-        ),
-        DeclareLaunchArgument(
-            'crop_mode',
-            default_value='CENTER',
-            description='The crop mode to crop the image using',
-        ),
-        DeclareLaunchArgument(
-            'input_encoding',
-            default_value='rgb8',
-            description='The desired image format encoding',
-        ),
-        DeclareLaunchArgument(
-            'encoding_desired',
-            default_value='rgb8',
-            description='The desired image format encoding',
-        ),
-        DeclareLaunchArgument(
-            'final_tensor_name',
-            default_value='input_tensor',
-            description='The tensor name of the output of image encoder',
-        ),
-        DeclareLaunchArgument(
-            'dnn_image_encoder_namespace',
-            default_value='dnn_image_encoder',
-            description='The namespace to put the DNN image encoder under',
-        ),
+        DeclareLaunchArgument('input_image_width', default_value='640', description='The input image width'),
+        DeclareLaunchArgument('input_image_height', default_value='512', description='The input image height'),
+        DeclareLaunchArgument('network_image_width', default_value='640', description='The network image width'),
+        DeclareLaunchArgument('network_image_height', default_value='512', description='The network image height'),
+        DeclareLaunchArgument('image_mean', default_value='[0.5, 0.5, 0.5]', description='The mean for image normalization'),
+        DeclareLaunchArgument('image_stddev', default_value='[0.5, 0.5, 0.5]', description='The standard deviation for image normalization'),
+        DeclareLaunchArgument('enable_padding', default_value='True', description='Whether to enable padding or not'),
+        DeclareLaunchArgument('input_qos', default_value='DEFAULT', description='The QoS settings for the input image'),
+        DeclareLaunchArgument('output_qos', default_value='DEFAULT', description='The QoS settings for the output tensor'),
+        DeclareLaunchArgument('num_blocks', default_value='40', description='The number of preallocated memory blocks'),
+        DeclareLaunchArgument('keep_aspect_ratio', default_value='True', description='Whether to maintain the aspect ratio or not while resizing'),
+        DeclareLaunchArgument('crop_mode', default_value='CENTER', description='The crop mode to crop the image using'),
+        DeclareLaunchArgument('input_encoding', default_value='rgb8', description='The desired image format encoding'),
+        DeclareLaunchArgument('encoding_desired', default_value='rgb8', description='The desired image format encoding'),
+        DeclareLaunchArgument('final_tensor_name', default_value='images', description='The tensor name of the output of image encoder (matched to ONNX input)'),
+        DeclareLaunchArgument('dnn_image_encoder_namespace', default_value='dnn_image_encoder', description='The namespace to put the DNN image encoder under'),
+        DeclareLaunchArgument('image_input_topic', default_value='/image', description='Input image topic'),
+        DeclareLaunchArgument('camera_info_input_topic', default_value='/camera_info', description='Input camera info topic'),
+        DeclareLaunchArgument('tensor_output_topic', default_value='/tensor_pub', description='Output tensor topic'),
     ]
 
     return LaunchDescription(launch_args + [OpaqueFunction(function=launch_setup)])

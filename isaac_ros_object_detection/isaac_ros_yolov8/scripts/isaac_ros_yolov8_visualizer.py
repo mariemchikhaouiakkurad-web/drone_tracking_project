@@ -30,88 +30,11 @@ from sensor_msgs.msg import Image
 from vision_msgs.msg import Detection2DArray
 
 names = {
-        0: 'person',
-        1: 'bicycle',
-        2: 'car',
-        3: 'motorcycle',
-        4: 'airplane',
-        5: 'bus',
-        6: 'train',
-        7: 'truck',
-        8: 'boat',
-        9: 'traffic light',
-        10: 'fire hydrant',
-        11: 'stop sign',
-        12: 'parking meter',
-        13: 'bench',
-        14: 'bird',
-        15: 'cat',
-        16: 'dog',
-        17: 'horse',
-        18: 'sheep',
-        19: 'cow',
-        20: 'elephant',
-        21: 'bear',
-        22: 'zebra',
-        23: 'giraffe',
-        24: 'backpack',
-        25: 'umbrella',
-        26: 'handbag',
-        27: 'tie',
-        28: 'suitcase',
-        29: 'frisbee',
-        30: 'skis',
-        31: 'snowboard',
-        32: 'sports ball',
-        33: 'kite',
-        34: 'baseball bat',
-        35: 'baseball glove',
-        36: 'skateboard',
-        37: 'surfboard',
-        38: 'tennis racket',
-        39: 'bottle',
-        40: 'wine glass',
-        41: 'cup',
-        42: 'fork',
-        43: 'knife',
-        44: 'spoon',
-        45: 'bowl',
-        46: 'banana',
-        47: 'apple',
-        48: 'sandwich',
-        49: 'orange',
-        50: 'broccoli',
-        51: 'carrot',
-        52: 'hot dog',
-        53: 'pizza',
-        54: 'donut',
-        55: 'cake',
-        56: 'chair',
-        57: 'couch',
-        58: 'potted plant',
-        59: 'bed',
-        60: 'dining table',
-        61: 'toilet',
-        62: 'tv',
-        63: 'laptop',
-        64: 'mouse',
-        65: 'remote',
-        66: 'keyboard',
-        67: 'cell phone',
-        68: 'microwave',
-        69: 'oven',
-        70: 'toaster',
-        71: 'sink',
-        72: 'refrigerator',
-        73: 'book',
-        74: 'clock',
-        75: 'vase',
-        76: 'scissors',
-        77: 'teddy bear',
-        78: 'hair drier',
-        79: 'toothbrush',
+    0: 'car',
+    1: 'bus',
+    2: 'truck',
+    3: 'motorcycle',
 }
-
 
 class Yolov8Visualizer(Node):
     QUEUE_SIZE = 10
@@ -122,16 +45,18 @@ class Yolov8Visualizer(Node):
         super().__init__('yolov8_visualizer')
         self._bridge = cv_bridge.CvBridge()
         self._processed_image_pub = self.create_publisher(
-            Image, 'yolov8_processed_image',  self.QUEUE_SIZE)
+            Image, 'yolov8_processed_image', self.QUEUE_SIZE)
 
         self._detections_subscription = message_filters.Subscriber(
             self,
             Detection2DArray,
             'detections_output')
+            
+        # Correction : écoute le topic /image actif de la caméra thermique
         self._image_subscription = message_filters.Subscriber(
             self,
             Image,
-            '/yolov8_encoder/resize/image')
+            '/image')
 
         self.time_synchronizer = message_filters.TimeSynchronizer(
             [self._detections_subscription, self._image_subscription],
@@ -148,7 +73,12 @@ class Yolov8Visualizer(Node):
             width = detection.bbox.size_x
             height = detection.bbox.size_y
 
-            label = names[int(detection.results[0].hypothesis.class_id)]
+            class_id = int(detection.results[0].hypothesis.class_id)
+            if class_id in names:
+                label = names[class_id]
+            else:
+                label = f'unknown_{class_id}'
+                
             conf_score = detection.results[0].hypothesis.score
             label = f'{label} {conf_score:.2f}'
 
@@ -159,7 +89,6 @@ class Yolov8Visualizer(Node):
 
             lw = max(round((img_msg.height + img_msg.width) / 2 * 0.003), 2)  # line width
             tf = max(lw - 1, 1)  # font thickness
-            # text width, height
             w, h = cv2.getTextSize(label, 0, fontScale=lw / 3, thickness=tf)[0]
             outside = min_pt[1] - h >= 3
 

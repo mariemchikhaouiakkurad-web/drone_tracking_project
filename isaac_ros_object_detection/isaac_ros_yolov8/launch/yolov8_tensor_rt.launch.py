@@ -28,7 +28,6 @@ from launch_ros.descriptions import ComposableNode
 
 def generate_launch_description():
     """Generate launch description for TensorRT ROS 2 node."""
-    # By default loads and runs mobilenetv2-1.0 included in isaac_ros_dnn_inference/models
     launch_args = [
         DeclareLaunchArgument(
             'model_file_path',
@@ -62,6 +61,39 @@ def generate_launch_description():
             'force_engine_update',
             default_value='False',
             description='Whether TensorRT should update the TensorRT engine file or not'),
+        # --- ARGUMENTS AJOUTÉS POUR CORRIGER LES DIMENSIONS ---
+        DeclareLaunchArgument(
+            'input_image_width',
+            default_value='640',
+            description='Input image width'),
+        DeclareLaunchArgument(
+            'input_image_height',
+            default_value='512',
+            description='Input image height'),
+        DeclareLaunchArgument(
+            'network_image_width',
+            default_value='640',
+            description='Network input width'),
+        DeclareLaunchArgument(
+            'network_image_height',
+            default_value='512',
+            description='Network input height'),
+        DeclareLaunchArgument(
+            'image_mean',
+            default_value='[0.0, 0.0, 0.0]',
+            description='Image mean for normalization'),
+        DeclareLaunchArgument(
+            'image_stddev',
+            default_value='[1.0, 1.0, 1.0]',
+            description='Image stddev for normalization'),
+        DeclareLaunchArgument(
+            'confidence_threshold',
+            default_value='0.25',
+            description='Confidence threshold for detections'),
+        DeclareLaunchArgument(
+            'nms_threshold',
+            default_value='0.45',
+            description='NMS threshold'),
     ]
 
     # DNN Image Encoder parameters

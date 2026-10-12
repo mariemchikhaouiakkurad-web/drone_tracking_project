@@ -24,7 +24,6 @@ from launch_ros.descriptions import ComposableNode
 
 def generate_launch_description():
     """Generate launch description for TensorRT ROS 2 node."""
-    # By default loads and runs mobilenetv2-1.0 included in isaac_ros_dnn_inference/models
     launch_args = [
         DeclareLaunchArgument(
             'model_file_path',
@@ -36,19 +35,19 @@ def generate_launch_description():
             description='The absolute file path to the TensorRT engine file'),
         DeclareLaunchArgument(
             'input_tensor_names',
-            default_value='["input_tensor"]',
+            default_value='["images"]',
             description='A list of tensor names to bound to the specified input binding names'),
         DeclareLaunchArgument(
             'input_binding_names',
-            default_value='[""]',
+            default_value='["images"]',
             description='A list of input tensor binding names (specified by model)'),
         DeclareLaunchArgument(
             'output_tensor_names',
-            default_value='["output_tensor"]',
+            default_value='["output0"]',
             description='A list of tensor names to bound to the specified output binding names'),
         DeclareLaunchArgument(
             'output_binding_names',
-            default_value='[""]',
+            default_value='["output0"]',
             description='A list of output tensor binding names (specified by model)'),
         DeclareLaunchArgument(
             'verbose',
@@ -74,8 +73,10 @@ def generate_launch_description():
         name='tensor_rt',
         package='isaac_ros_tensor_rt',
         plugin='nvidia::isaac_ros::dnn_inference::TensorRTNode',
-        remappings=[('tensor_pub', 'tensor_pub'),
-                    ('tensor_sub', 'tensor_sub')],
+        remappings=[
+            ('tensor_pub', '/tensor_pub'),  # Connecte l'entrée du TRT au /tensor_pub de l'encodeur
+            ('tensor_sub', 'tensor_sub')
+        ],
         parameters=[{
             'model_file_path': model_file_path,
             'engine_file_path': engine_file_path,
