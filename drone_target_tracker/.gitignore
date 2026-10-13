@@ -1,0 +1,4 @@
+# tracker checkpoints are downloaded (tracker_lib/download_models.py), never committed
+tracker_lib/trackers/*/models/*
+!tracker_lib/trackers/*/models/.keep
+__pycache__/

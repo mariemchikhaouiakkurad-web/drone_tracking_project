@@ -1,0 +1,17 @@
+# Isaac ROS image layer for drone_target_tracker: the Python packages the trackers need, on top of the Isaac ROS
+# 3.2 dev image (ros2_humble). Used through ~/.isaac_ros_common-config (see README.md), so it stays installed when
+# the container is rebuilt.
+ARG BASE_IMAGE
+FROM ${BASE_IMAGE}
+
+# PyTorch + torchvision as a matching pair for JetPack 6 / CUDA 12.6 (Jetson AI Lab index). The image ships
+# NVIDIA's torch 2.5 without torchvision, which SUTrack and HiT need (through timm and CLIP).
+RUN python3 -m pip install --no-cache-dir --index-url https://pypi.jetson-ai-lab.io/jp6/cu126 torch torchvision
+
+# The trackers' small packages. OpenCV and numpy are NOT installed with pip: the image's apt versions are the ones
+# ROS 2 is built against (numpy < 2 is pinned so nothing upgrades it).
+RUN python3 -m pip install --no-cache-dir "numpy<2" \
+        timm==0.5.4 easydict pyyaml pillow ftfy regex einops yacs tensorboardX matplotlib gdown \
+        "git+https://github.com/openai/CLIP.git"
+
+RUN python3 -c "import torch, torchvision; print('torch', torch.__version__, 'torchvision', torchvision.__version__)"
