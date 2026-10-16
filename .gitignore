@@ -1,0 +1,5 @@
+__pycache__/
+*.pyc
+*.npz
+*.bak
+uma-8/config/known_point.json
