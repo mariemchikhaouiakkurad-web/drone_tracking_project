@@ -1,0 +1,44 @@
+# Parameters of tracker_node. The tracker itself is chosen at launch: tracker:=dyhit | dyhit_trt | hit_base | sutrack
+tracker_node:
+  ros__parameters:
+    # where the trackers' code, settings and checkpoints are (this package's tracker_lib/ in the workspace source)
+    tracker_lib: "/workspaces/isaac_ros-dev/src/yolo-pipline/drone_target_tracker/tracker_lib"
+
+    image_topic: /image
+    detections_topic: /detections_output
+    camera_info_topic: /camera_info
+
+    # the detector's classes in order (bestperson.onnx has one: class_id "0" = person) and the one(s) to track
+    class_names: [person]
+    target_classes: [person]
+    min_score: 0.25            # detections below this are ignored (the decoder already drops < confidence_threshold)
+
+    # decisions (same meaning and values as in the test bench, test_detector_tracker_car)
+    verify_iou: 0.3            # a detection confirms the tracker if it overlaps its box at least this much
+    reacquire_gate: 1.5        # corrections only to detections within 1.5 x the target's size of its last position
+    lost_after_s: 0.5          # lost (-> search) when the target was not confirmed or corrected for this long
+                               # (seconds, whatever the detector's rate); 0 = use lost_after instead
+    lost_after: 3              # only if lost_after_s is 0: this many detection messages in a row without the target
+    trust_tracker_s: 2.0       # after a loss the tracker keeps running unseen; for this long after the target was
+                               # last confirmed, only a detection near the tracker's box re-acquires it
+    search_growth: 200.0       # later: re-acquire only within reacquire_gate x target size of the last known
+                               # position + this many pixels per second since it was last confirmed (0 = no limit)
+    search_radius: 0.0         # and never farther than this many pixels (0 = no fixed cap)
+    initial_target: best       # first target: best (most confident), largest or center
+    lost_score: -1.0           # SUTrack: a score below this asks the detector at once; -1 = value in tracker_lib/config.json
+
+    # matching detections to images (same timestamp) and catching up after a restart
+    stamp_tolerance: 0.02      # seconds; the decoder copies the image's timestamp exactly
+    max_catch_up: 3            # after a restart on an older image, rerun the tracker over at most this many newer ones
+
+    # how often the detector runs: every N-th image while tracking, every image while searching. The node sends
+    # those images (and their CameraInfo) on the two topics below, and the detector's encoder must read them
+    # (launch/thermal_tracking.launch.py wires it). Detections of other images are ignored. 0 = the node does not
+    # drive the detector and uses every detection message it gets.
+    detector_every: 5
+    detector_image_topic: /image_for_detector
+    detector_camera_info_topic: /camera_info_for_detector
+    check_on_low_score: true   # also send the image at once when SUTrack's score drops below lost_score
+
+    publish_debug_image: true  # /target/debug_image (only drawn while someone subscribes, e.g. rqt_image_view)
+    log_every_s: 5.0           # print a summary line every 5 s (0 = never)

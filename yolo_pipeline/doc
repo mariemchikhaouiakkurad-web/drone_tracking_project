@@ -1,0 +1,87 @@
+
+
+1. Environment Setup & Launch
+
+
+export ISAAC_ROS_WS=~/workspaces/isaac_ros-dev
+cd $ISAAC_ROS_WS
+
+./src/isaac_ros_common/scripts/run_dev.sh
+
+
+
+
+2. Hardware Camera Node (v4l2_camera)
+
+ros2 run v4l2_camera v4l2_camera_node --ros-args   -p video_device:=/dev/video0   -p image_size:="[640,512]"   -p camera_info_url:=file:///home/marwa/workspaces/isaac_ros-dev/src/cameraconfig/thermal_camera.yaml   -r image_raw:=image
+
+
+
+3. Preprocessing & Tensor Encoding (dnn_image_encoder)
+
+ros2 launch isaac_ros_dnn_image_encoder dnn_image_encoder.launch.py \
+  input_image_width:=640 \
+  input_image_height:=512 \
+  network_image_width:=640 \
+  network_image_height:=512 \
+  image_input_topic:=/image \
+  camera_info_input_topic:=/camera_info \
+  tensor_output_topic:=/tensor_pub
+
+
+
+
+
+4. Model Inference (isaac_ros_tensor_rt)
+
+ros2 launch isaac_ros_tensor_rt isaac_ros_tensor_rt.launch.py \
+  engine_file_path:=/workspaces/isaac_ros-dev/src/model/best.plan \
+  input_tensor_names:='["images"]' \
+  input_binding_names:='["images"]' \
+  output_tensor_names:='["output0"]' \
+  output_binding_names:='["output0"]'
+
+
+
+
+5. Post-Processing & Bounding Box Visualization
+
+python3 /workspaces/isaac_ros-dev/src/isaac_ros_object_detection/isaac_ros_yolov8/scripts/isaac_ros_yolov8_visualizer.py
+
+
+
+
+
+6. GUI Monitoring (rqt_image_view)
+ros2 run rqt_image_view rqt_image_view
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
