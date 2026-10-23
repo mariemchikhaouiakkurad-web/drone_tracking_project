@@ -1,0 +1,35 @@
+# fusion.yaml - parameters of the DALBD fusion state machine.
+# Floats keep their decimal point (0.5, not 1): ROS 2 rejects an int for a float parameter.
+state_machine:
+  ros__parameters:
+    # ---- chart constants (default transition)
+    lost_s: 1.5                 # vision == 0 for longer than this -> target lost (tracker flickers: keep >= 1.5)
+    sound_timeout_s: 2.0        # a sound direction / [DRONE] label older than this -> sound == 0
+    search_timeout_s: 5.0       # sound == 0 for longer than this in SOUND_TRACK -> SEARCH
+    vision_timeout_s: 1.0       # a vision bearing older than this -> vision == 0 (bearings come at ~3-15 Hz)
+    rate_hz: 20.0               # chart sample time 0.05 s
+
+    # ---- rules
+    require_drone_label: true   # sound == 1 only with a fresh "[DRONE]" label
+    sound_requires_loss: true   # true: sound used only after vision lost the target ([... && target_lost == 1])
+    use_vision_status: false    # false: ignore /target/status "searching" flicker, vision = fresh bearings only
+
+    # ---- sound array -> camera frame (camera <-> UMA-8 calibration)
+    # sound_axes: which UMA-8 (ODAS) axis points FORWARD, LEFT and UP. "" = flat array (old az/el + sign/offset).
+    #   MIC1 up,   LED face looking where the camera looks: "forward=+z,left=-y,up=+x"
+    #   MIC4 up,   LED face forward:                        "forward=+z,left=+y,up=-x"
+    #   USB side up (3 o'clock), LED face forward:          "forward=+z,left=-x,up=-y"
+    sound_axes: "forward=+z,left=-y,up=+x"
+    sound_az_sign: -1.0         # flip to 1.0 if sound and vision move in opposite directions
+    sound_yaw_offset_deg: 0.0   # = median vision-sound gap from state_report
+    sound_pitch_offset_deg: 0.0
+
+    # ---- topics
+    vision_status_topic: "/target/status"
+    vision_bearing_topic: "/target/bearing"
+    sound_warning_topic: "/drone_warning"        # JSON {level_name CLEAR|DRONE, x, y, z, azimuth_deg, elevation_deg}
+    sound_direction_topic: ""                    # "" = direction from /drone_warning (best target, held 1.5 s);
+                                                 # "/target/direction" = raw JSON targets list (best drone_prob)
+
+    # ---- log
+    log_dir: "/workspaces/isaac_ros-dev/fusion_logs"   # mounted folder: survives a new container

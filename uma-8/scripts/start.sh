@@ -20,9 +20,9 @@ FIFO=/tmp/odas_raw.fifo
 DEV="${DEV:-plughw:CARD=Loopback,DEV=1}"
 CAL_S="${CAL_S:-10}"
 WATCH_S="${WATCH_S:-20}"
-LOG="$HOME/dataset/odas_logs"; mkdir -p "$LOG"
+LOG="/home/akkurad/dataset/odas_logs"; mkdir -p "$LOG"
 if [ -f /opt/ros/humble/setup.bash ]; then source /opt/ros/humble/setup.bash; else echo "ERROR: ROS 2 Humble not found"; exit 1; fi
-[ -f "$HOME/ros2_ws/install/setup.bash" ] && source "$HOME/ros2_ws/install/setup.bash"
+SW=$HOME/ros2_ws/install; [ -d /workspaces/isaac_ros-dev ] && SW=/workspaces/isaac_ros-dev/sound_ws/install_container; [ -f "$SW/setup.bash" ] && source "$SW/setup.bash"
 set -u
 export PYTHONUNBUFFERED=1 RCUTILS_LOGGING_BUFFERED_STREAM=0 RCUTILS_COLORIZED_OUTPUT=0
 cd "$ROOT"

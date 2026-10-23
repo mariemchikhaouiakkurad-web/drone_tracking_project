@@ -8,7 +8,7 @@
 # Then: python3 tools/sss_analyze.py   (report + spectrograms of the last take)
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 source /opt/ros/humble/setup.bash
-[ -f "$HOME/ros2_ws/install/setup.bash" ] && source "$HOME/ros2_ws/install/setup.bash"
+SW=$HOME/ros2_ws/install; [ -d /workspaces/isaac_ros-dev ] && SW=/workspaces/isaac_ros-dev/sound_ws/install_container; [ -f "$SW/setup.bash" ] && source "$SW/setup.bash"
 export PYTHONUNBUFFERED=1
 ARGS=(-p topic:=/raw/sss -p sst_topic:=/raw/sst -p gate:=true)
 if [ "${1:-}" = listen ]; then

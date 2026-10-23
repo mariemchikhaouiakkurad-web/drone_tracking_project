@@ -5,7 +5,7 @@
 drone_classifier:
   ros__parameters:
     # ---- model
-    model_path: "/home/akkurad/models/mobilenetv2_drone.engine"  # .engine (TensorRT) | .onnx | .pt
+    model_path: "/workspaces/isaac_ros-dev/src/model/mobilenetv2_drone.engine"  # TensorRT engine, GPU
     backend: "auto"                 # auto (by extension) | onnx | tensorrt | torch
     onnx_providers: ["CUDAExecutionProvider", "CPUExecutionProvider"]
     output_activation: "softmax"    # softmax | sigmoid | none (model already outputs probabilities)
@@ -59,4 +59,4 @@ drone_classifier:
 
     # ---- output
     frame: "odas"
-    log_dir: "~/dataset"
+    log_dir: "/home/akkurad/dataset"

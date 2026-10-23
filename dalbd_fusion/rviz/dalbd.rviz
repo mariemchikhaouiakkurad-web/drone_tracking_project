@@ -1,0 +1,69 @@
+Panels:
+  - Class: rviz_common/Displays
+    Name: Displays
+    Help Height: 0
+    Tree Height: 400
+Visualization Manager:
+  Class: ""
+  Displays:
+    - Class: rviz_default_plugins/Grid
+      Name: Grid
+      Enabled: true
+      Reference Frame: camera
+      Plane: XY
+      Plane Cell Count: 10
+      Cell Size: 0.5
+      Color: 90; 90; 90
+      Alpha: 0.4
+      Offset: {X: 0, Y: 0, Z: -1}
+    - Class: rviz_default_plugins/Axes
+      Name: Camera axes (red fwd, green left, blue up)
+      Enabled: true
+      Reference Frame: camera
+      Length: 0.6
+      Radius: 0.03
+    - Class: rviz_default_plugins/TF
+      Name: TF (camera / odas)
+      Enabled: true
+      Show Names: true
+      Show Axes: true
+      Marker Scale: 1.5
+    - Class: rviz_default_plugins/MarkerArray
+      Name: Fusion view (/fusion/viz)
+      Enabled: true
+      Topic:
+        Value: /fusion/viz
+        Depth: 5
+        Durability Policy: Volatile
+        Reliability Policy: Reliable
+    - Class: rviz_default_plugins/MarkerArray
+      Name: UMA-8 targets (/target/markers)
+      Enabled: false
+      Topic:
+        Value: /target/markers
+        Depth: 5
+        Durability Policy: Volatile
+        Reliability Policy: Reliable
+  Enabled: true
+  Global Options:
+    Background Color: 25; 25; 30
+    Fixed Frame: camera
+    Frame Rate: 30
+  Tools:
+    - Class: rviz_default_plugins/MoveCamera
+    - Class: rviz_default_plugins/Select
+  Value: true
+  Views:
+    Current:
+      Class: rviz_default_plugins/Orbit
+      Name: Behind the camera
+      Target Frame: camera
+      Focal Point: {X: 1.5, Y: 0, Z: 0}
+      Distance: 7
+      Pitch: 0.35
+      Yaw: 3.14159
+      Near Clip Distance: 0.01
+    Saved: ~
+Window Geometry:
+  Width: 1400
+  Height: 850
