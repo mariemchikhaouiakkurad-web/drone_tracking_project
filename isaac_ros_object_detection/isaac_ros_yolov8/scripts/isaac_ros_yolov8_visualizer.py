@@ -30,10 +30,7 @@ from sensor_msgs.msg import Image
 from vision_msgs.msg import Detection2DArray
 
 names = {
-    0: 'car',
-    1: 'bus',
-    2: 'truck',
-    3: 'motorcycle',
+    0: 'person',
 }
 
 class Yolov8Visualizer(Node):
@@ -56,6 +53,7 @@ class Yolov8Visualizer(Node):
         self._image_subscription = message_filters.Subscriber(
             self,
             Image,
+            #'/dnn_image_encoder/crop/image'
             '/image')
 
         self.time_synchronizer = message_filters.TimeSynchronizer(

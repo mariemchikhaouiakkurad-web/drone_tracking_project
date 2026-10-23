@@ -9,6 +9,8 @@ encoder, TensorRT, YOLOv8 decoder) plus tracker_node, with two differences, with
     tracker_node forwards (/image_for_detector, /camera_info_for_detector) instead of every camera image;
     detector_every:=0 restores the detector on every image (/image);
   * the decoder gets num_classes 4 (the model's car, bus, truck, motorcycle; its default 80 is wrong for this model).
+tracker:=none starts YOLO alone (camera topic -> encoder -> TensorRT -> decoder, no tracker_node): the encoder reads
+every /image, as with detector_every:=0. Used to measure the detector by itself.
 Paths are the ones inside the Isaac ROS container (/workspaces/isaac_ros-dev/src/...).
 """
 import os
@@ -39,6 +41,9 @@ def setup(context):
     params_file = get("params_file")
     every = get("detector_every")
     every = int(every) if every != "" else int(yaml_param(params_file, "detector_every", 5))
+    yolo_only = get("tracker") == "none"
+    if yolo_only:
+        every = 0  # no tracker to forward images: the detector reads every camera image
     if every > 0:
         image_in = yaml_param(params_file, "detector_image_topic", "/image_for_detector")
         info_in = yaml_param(params_file, "detector_camera_info_topic", "/camera_info_for_detector")
@@ -96,19 +101,19 @@ def setup(context):
         package="drone_target_tracker", executable="tracker_node", name="tracker_node", output="screen",
         parameters=[params_file, {"tracker": get("tracker"), "detector_every": every}],
     )
-    return [camera, container, encoder, tracker]
+    return [camera, container, encoder] if yolo_only else [camera, container, encoder, tracker]
 
 
 def generate_launch_description():
     return LaunchDescription([
-        DeclareLaunchArgument("tracker", default_value="dyhit", description="dyhit, hit_base or sutrack"),
+        DeclareLaunchArgument("tracker", default_value="dyhit", description="dyhit, hit_base, sutrack, or none (YOLO alone)"),
         DeclareLaunchArgument("detector_every", default_value="",
                               description="detector every N images; empty = config/tracker.yaml (5); 0 = every image"),
         DeclareLaunchArgument("params_file", default_value=os.path.join(PKG, "config", "tracker.yaml")),
         DeclareLaunchArgument("video_device", default_value="/dev/video0"),
         DeclareLaunchArgument("camera_info_url", default_value=f"file://{SRC}/cameraconfig/thermal_camera.yaml"),
-        DeclareLaunchArgument("model_file_path", default_value=f"{SRC}/model/best.onnx"),
-        DeclareLaunchArgument("engine_file_path", default_value=f"{SRC}/model/best.plan"),
+        DeclareLaunchArgument("model_file_path", default_value=f"{SRC}/model/bestperson.onnx"),
+        DeclareLaunchArgument("engine_file_path", default_value=f"{SRC}/model/bestperson.plan"),
         DeclareLaunchArgument("confidence_threshold", default_value="0.25"),
         DeclareLaunchArgument("nms_threshold", default_value="0.45"),
         OpaqueFunction(function=setup),

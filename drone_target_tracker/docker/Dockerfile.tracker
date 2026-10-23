@@ -14,4 +14,8 @@ RUN python3 -m pip install --no-cache-dir "numpy<2" \
         timm==0.5.4 easydict pyyaml pillow ftfy regex einops yacs tensorboardX matplotlib gdown \
         "git+https://github.com/openai/CLIP.git"
 
+# CLIP pulls a PyPI torchvision that does not match the Jetson torch: put the matching Jetson pair back
+RUN python3 -m pip install --no-cache-dir --force-reinstall --no-deps \
+    --index-url https://pypi.jetson-ai-lab.io/jp6/cu126 torch torchvision && \
+    python3 -m pip list 2>/dev/null | grep -iE "^(torch|torchvision|numpy) "
 RUN python3 -c "import torch, torchvision; print('torch', torch.__version__, 'torchvision', torchvision.__version__)"

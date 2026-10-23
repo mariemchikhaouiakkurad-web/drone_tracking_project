@@ -3,21 +3,21 @@
   "sutrack_repo": "external/SUTrack",
   "sutrack_config": "sutrack_t224",
   "sutrack_ckpt": "trackers/sutrack/models/SUTRACK_t224.pth.tar",
-
   "hit_base_repo": "external/HiT",
   "hit_base_config": "HiT_Base",
   "hit_base_ckpt": "trackers/hit_base/models/HiT_Base.pth.tar",
   "hit_base_device": "auto",
-
   "dyhit_repo": "external/HiT",
   "dyhit_config": "stage2",
   "dyhit_ckpt": "trackers/dyhit/models/DyHiT_ep0060.pth.tar",
   "dyhit_device": "auto",
-
+  "dyhit_trt_engine": "trackers/dyhit/models/dyhit_route1_fp32.plan",
+  "_dyhit_trt_comment": "dyhit_trt = same DyHiT checkpoint, network as a TensorRT FP32 engine (FP16 gives NaN); build it with trackers/dyhit_trt/dyhit_trt_tool.py",
   "lost_score": {
     "_comment": "the pipeline runs the detector at once when the tracker's own score is below this (null = the tracker has no score: HiT, DyHiT)",
     "sutrack": 0.3,
     "hit_base": null,
-    "dyhit": null
+    "dyhit": null,
+    "dyhit_trt": null
   }
 }

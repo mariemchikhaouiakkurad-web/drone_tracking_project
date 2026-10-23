@@ -8,7 +8,7 @@ import sys
 
 from common.bench_core import ROOT
 
-TRACKERS = ["sutrack", "hit_base", "dyhit"]
+TRACKERS = ["sutrack", "hit_base", "dyhit", "dyhit_trt"]  # dyhit_trt: DyHiT network as a TensorRT engine
 
 _MODULES = {}
 

@@ -14,6 +14,10 @@ every N-th image while tracking, every image while searching (to find the target
 the tracker's score drops (check_on_low_score). Detections of images that were not sent are ignored, so the result
 is the same whether the detector reads the node's images or still reads every camera image. detector_every = 0:
 the detector is not driven by the node and every detection message is used.
+
+Low latency (DALBD): the node asks pre_image() BEFORE running the tracker and forwards the image to the detector at
+once, so the detector no longer waits for the tracker (~20 ms less YOLO latency). Only the low-score check
+(check_on_low_score, SUTrack) still has to wait for the tracker's score; on_image() reports it as a late send.
 """
 import os
 import sys
@@ -72,8 +76,25 @@ class TrackerCore:
         self.restart_ms = deque(maxlen=500)
 
     # ------------------------------------------------------------------ images
-    def on_image(self, frame, stamp):
-        """Run the tracker on a new image (if it has a target). Returns a FrameResult for this image."""
+    def pre_image(self, stamp):
+        """Decide, BEFORE the tracker runs on this image, whether it goes to the detector (every image while searching,
+        every detector_every-th while tracking). True: forward it now, then call on_image(frame, stamp, sent=True)."""
+        if self.detector_every <= 0:
+            return False
+        self.since_sent += 1
+        send = self.logic.mode != "track" or self.since_sent >= self.detector_every
+        if send:
+            self._mark_sent(stamp)
+        return send
+
+    def _mark_sent(self, stamp):
+        self.since_sent = 0
+        self.sent.append(stamp)
+        self.stats["sent_to_detector"] += 1
+
+    def on_image(self, frame, stamp, sent=None):
+        """Run the tracker on a new image (if it has a target). Returns a FrameResult for this image.
+        sent: what pre_image() returned for this image (None = decide here, after the tracker, as before)."""
         self.stats["images"] += 1
         box = score = trk_ms = None
         if self.ready:
@@ -97,13 +118,16 @@ class TrackerCore:
         weak = tracking and (box is None or (entry.score is not None and self.lost_score is not None
                                              and entry.score < self.lost_score))
         send = False
-        if self.detector_every > 0:
+        if self.detector_every > 0 and sent is None:  # decided after the tracker (original behaviour)
             self.since_sent += 1
             send = (not tracking or self.since_sent >= self.detector_every or (weak and self.check_on_low_score))
             if send:
-                self.since_sent = 0
-                self.sent.append(stamp)
-                self.stats["sent_to_detector"] += 1
+                self._mark_sent(stamp)
+        elif self.detector_every > 0:  # already decided by pre_image(); only a low score can still ask the detector
+            send = bool(sent)
+            if not send and weak and self.check_on_low_score:
+                self._mark_sent(stamp)
+                send = True
         return FrameResult(stamp, box, entry.score, self.logic.mode, trk_ms, weak, send)
 
     # ------------------------------------------------------------------ detections

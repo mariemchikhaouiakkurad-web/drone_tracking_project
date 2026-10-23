@@ -1,16 +1,16 @@
-# Parameters of tracker_node. The tracker itself is chosen at launch: tracker:=dyhit | hit_base | sutrack
+# Parameters of tracker_node. The tracker itself is chosen at launch: tracker:=dyhit | dyhit_trt | hit_base | sutrack
 tracker_node:
   ros__parameters:
     # where the trackers' code, settings and checkpoints are (this package's tracker_lib/ in the workspace source)
-    tracker_lib: /workspaces/isaac_ros-dev/src/drone_target_tracker/tracker_lib
+    tracker_lib: "/workspaces/isaac_ros-dev/src/yolo-pipline/drone_target_tracker/tracker_lib"
 
     image_topic: /image
     detections_topic: /detections_output
     camera_info_topic: /camera_info
 
-    # the detector's classes in order (class_id "0" = car ...) and the ones that count as the target
-    class_names: [car, bus, truck, motorcycle]
-    target_classes: [car]
+    # the detector's classes in order (bestperson.onnx has one: class_id "0" = person) and the one(s) to track
+    class_names: [person]
+    target_classes: [person]
     min_score: 0.25            # detections below this are ignored (the decoder already drops < confidence_threshold)
 
     # decisions (same meaning and values as in the test bench, test_detector_tracker_car)

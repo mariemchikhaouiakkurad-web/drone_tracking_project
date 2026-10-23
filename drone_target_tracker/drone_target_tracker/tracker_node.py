@@ -113,19 +113,29 @@ class TrackerNode(Node):
             self.K = (k[0], k[4], k[2], k[5])
 
     def on_image(self, msg):
+        stamp = stamp_s(msg.header)
+        # 1) low latency: decide first and forward the received message as it is, BEFORE converting it and BEFORE
+        #    the tracker runs, so YOLO starts ~20 ms earlier (it used to wait for the tracker on every check)
+        sent = self.core.pre_image(stamp) if self.pub_det_image is not None else False
+        if sent:
+            self.forward_to_detector(msg)
         try:
             frame = to_bgr(msg)
         except ValueError as e:
             self.get_logger().error(str(e), throttle_duration_sec=5.0)
             return
-        res = self.core.on_image(frame, stamp_s(msg.header))
-        if res.send and self.pub_det_image is not None:
-            if self.camera_info is not None:  # the encoder pairs each image with a CameraInfo of the same stamp
-                info = self.camera_info
-                info.header.stamp = msg.header.stamp
-                self.pub_det_info.publish(info)
-            self.pub_det_image.publish(msg)
+        # 2) then the tracker (its result does not depend on the detection of this image, which comes later anyway)
+        res = self.core.on_image(frame, stamp, sent=sent)
+        if res.send and not sent:  # late check asked by a low tracker score (SUTrack only)
+            self.forward_to_detector(msg)
         self.publish_outputs(msg.header, frame, res)
+
+    def forward_to_detector(self, msg):
+        if self.camera_info is not None:  # the encoder pairs each image with a CameraInfo of the same stamp
+            info = self.camera_info
+            info.header.stamp = msg.header.stamp
+            self.pub_det_info.publish(info)
+        self.pub_det_image.publish(msg)
 
     def on_detections(self, msg):
         stamp = stamp_s(msg.header)

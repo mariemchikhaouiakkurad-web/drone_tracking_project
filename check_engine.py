@@ -1,6 +1,6 @@
 import tensorrt as trt
 
-engine_path = "/workspaces/isaac_ros-dev/src/model/best.plan"
+engine_path = "/workspaces/isaac_ros-dev/src/model/bestperson.plan"
 logger = trt.Logger(trt.Logger.WARNING)
 runtime = trt.Runtime(logger)
 
