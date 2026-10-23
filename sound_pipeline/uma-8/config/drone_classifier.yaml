@@ -1,0 +1,62 @@
+# drone_classifier.yaml - MobileNetV2 on the separated audio of each track (/gate/sss, known point dropped).
+# Every value under "features" and "tensor" MUST match how the model was trained.
+# Run tools/mnv2_inspect.py on the model first: it prints the input shape and the lines to set here.
+# Floats must keep their decimal point (50.0, not 50): ROS 2 rejects an int for a float parameter.
+drone_classifier:
+  ros__parameters:
+    # ---- model
+    model_path: "/workspaces/isaac_ros-dev/src/model/mobilenetv2_drone.engine"  # TensorRT engine, GPU
+    backend: "auto"                 # auto (by extension) | onnx | tensorrt | torch
+    onnx_providers: ["CUDAExecutionProvider", "CPUExecutionProvider"]
+    output_activation: "softmax"    # softmax | sigmoid | none (model already outputs probabilities)
+    drone_index: 1                  # index of "drone" in the output vector
+    class_names: ["no_drone", "drone"]
+
+    # ---- FIFO input (not used by sss_target_classifier_node, which reads /gate/sss)
+    audio_fifo: "/tmp/odas_classifier.fifo"
+    fs_in: 48000                    # UMA-8 v2 RAW
+    channels: 8
+    mic_channels: [1, 2, 3, 4, 5, 6, 7]   # 0-based, same mics as uma8.cfg
+    dtype: "int16"                  # same sample format the feeder writes to the ODAS FIFOs
+    block_frames: 512               # = hop of the null (frame 1024, hop 512)
+
+    # ---- windowing
+    win_s: 1.0                      # clip length used in training
+    hop_s: 0.5                      # one decision every 0.5 s
+
+    # ---- model input  (mobilenetv2_drone.onnx: input "waveform" [batch, 16000] = 1 s raw audio at 16 kHz)
+    input_type: "waveform"          # waveform | logmel (logmel uses the feature block below)
+    wave_norm: "none"               # none | peak | rms  - must match training
+
+    # ---- features (logmel only; ignored for waveform)
+    model_fs: 16000
+    n_fft: 1024
+    win_length: 1024
+    hop_length: 256
+    n_mels: 64
+    fmin: 50.0
+    fmax: 8000.0
+    center: true
+    pad_mode: "constant"            # librosa >= 0.10 default ("reflect" for older librosa)
+    mel_backend: "auto"             # auto (librosa if installed) | librosa | numpy (identical maths)
+    log_scale: "db"                 # db = librosa.power_to_db(S, ref=1.0) | ln | none
+    top_db: 80.0
+
+    # ---- tensor
+    time_major: false               # false: (mels, frames)  true: (frames, mels)
+    norm: "clip"                    # none | clip | fixed | minmax | imagenet
+    norm_mean: 0.0                  # used by norm: fixed
+    norm_std: 1.0
+    resize: [0]                     # [0] = no resize; [224, 224] for an ImageNet-size MobileNetV2
+    in_channels: 1                  # 3 if the model expects RGB-like input
+    layout: "NCHW"                  # NCHW (PyTorch/ONNX) | NHWC (Keras/TFLite)
+
+    # ---- decision
+    threshold: 0.5
+    smooth_n: 3                     # is_drone = 3 of the last 5 windows over threshold
+    smooth_m: 5
+    max_age_s: 1.5                  # a target is labelled only with a result younger than this
+
+    # ---- output
+    frame: "odas"
+    log_dir: "/home/akkurad/dataset"

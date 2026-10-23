@@ -1,0 +1,58 @@
+Panels:
+  - Class: rviz_common/Displays
+    Name: Displays
+    Help Height: 0
+    Splitter Ratio: 0.5
+Visualization Manager:
+  Class: ""
+  Displays:
+    - Class: rviz_default_plugins/MarkerArray
+      Name: Omnisphere
+      Enabled: true
+      Topic:
+        Value: /target/markers
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+      Namespaces: {}
+      Value: true
+    - Class: rviz_default_plugins/MarkerArray
+      Name: Fusion raw (known, unlocked)
+      Enabled: false
+      Topic:
+        Value: /fusion/markers
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+      Namespaces: {}
+      Value: false
+  Enabled: true
+  Global Options:
+    Background Color: 30; 30; 36
+    Fixed Frame: odas
+    Frame Rate: 30
+  Name: root
+  Tools:
+    - Class: rviz_default_plugins/MoveCamera
+    - Class: rviz_default_plugins/Select
+  Value: true
+  Views:
+    Current:
+      Class: rviz_default_plugins/Orbit
+      Name: Current View
+      Target Frame: <Fixed Frame>
+      Focal Point: {X: 0, Y: 0, Z: 0}
+      Distance: 3.5
+      Pitch: 0.6
+      Yaw: 3.1416
+      Near Clip Distance: 0.01
+      Value: Orbit (rviz)
+    Saved: ~
+Window Geometry:
+  Width: 1200
+  Height: 900
+  X: 50
+  Y: 50
+  Hide Left Dock: false
